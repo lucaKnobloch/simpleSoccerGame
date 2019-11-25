@@ -2,14 +2,14 @@ import sys
 import time
 
 from OpenGL import GLUT as glut
-from OpenGL.GL import shaders
+from OpenGL.GL import shaders, glScale
 from OpenGL.raw.GLUT import GLUT_KEY_LEFT, GLUT_KEY_RIGHT, GLUT_KEY_UP, GLUT_KEY_DOWN
 
 from Utilities2 import *
 
 
 class GameObject:
-	def __init__(self, position=glm.vec3(0.0), scale=glm.vec3(1.0), gravity=glm.vec3(0.0, 0.0, 0.0)):
+	def __init__(self, position=glm.vec3(0.0), scale=glm.vec3(1.0, 1.0, 1.0), gravity=glm.vec3(0.0, 0.0, 0.0)):
 		self.position = position
 		self.scale = scale
 		self.velocity = glm.vec3(0.0)
@@ -99,8 +99,11 @@ def display():
 	if b'q' in pressed_keys:
 		direction -= glm.vec3(0, 2, 0)
 
+	# do the following if one of these keys are pressed
 	if len(pressed_keys.intersection((b'w', b'a', b's', b'd'))) != 0:
-		velocity = 4.0
+		# set the speed of the player
+		velocity = 8.0
+		# set the direction of the player
 		direction = glm.normalize(direction)
 		player.velocity = direction * velocity
 
@@ -110,41 +113,45 @@ def display():
 	player.velocity *= 0.96
 
 	# update the velocity / gravity
+	# ball.position.y = ball.gravity.y * delta_time
+	# ball.gravity *= 0.96
+
+	# check the collision with the ground or if the numbers gets too small
+	if check_collision(ball, ground) or ball.position.y < 0.01:
+		ball.position.y = 0.0
+		ball.velocity *= 0.96
+	else:
+		ball.velocity += ball.gravity * delta_time
+
 	ball.position += ball.velocity * delta_time
 	ball.translate(ball.position)
-	ball.velocity *= 0.96
-
-	if check_collision(ball, ground):
-		ball.position.y = 0.0
 
 	if check_collision(player, ball):
 		# changes the direction of the ball + adds velocity
-		# ball.gravity = glm.vec3(0.0, 2.0, 0.0)
-		ball.velocity = glm.normalize(ball.position - player.position) * 20.0
+		ball.velocity = (glm.normalize(ball.position - player.position) * 7.0 - ball.gravity * 0.5)
 
-	# check collision with the goal
-	if check_collision(ball, goal_left):
+	# check collision with the sourunding
+	if check_collision(player, wall_right) or check_collision(player, wall_left) or \
+			check_collision(player, wall_side_right) or check_collision(player, wall_side_left):
 		# change the direction and velocity after collision
-		ball.velocity = direction * -(glm.normalize(ball.position - player.position) * 20.0)
+		player.velocity = direction * -(glm.normalize(player.position) * 40.0)
 
-	# check collision with the goal
-	if check_collision(ball, goal_right):
+	# check collision player and goal right
+	if check_collision(player, goal_right):
 		# change the direction and velocity after collision
-		ball.velocity = direction * -(glm.normalize(ball.position - player.position) * 20.0)
+		player.velocity = direction * -(glm.normalize(goal_right.position - player.position) * 40.0)
+
+	# check collision player goal left
+	if check_collision(player, goal_left):
+		player.velocity = direction * -(glm.normalize(goal_left.position - player.position) * 40.0)
 
 	# check collision with the goal
-	# if check_collision(player, goal_right):
-	# change the direction and velocity after collision
-	# print("player position", player.position, "goal right", goal_right.position)
-	# print("player velocity ", player.velocity, "goal right", goal_right.velocity)
-	# player.velocity *= 0.0
-	# player.position = goal_right.position - glm.vec3(0.0, 0.0, 2.0)
-	# print("player velocity ", player.velocity, "goal right", goal_right.velocity)
+	if check_collision(ball, goal_left) or check_collision(ball, wall_right)\
+			or check_collision(ball, wall_side_left) or check_collision(ball, wall_side_right):
+		# change the direction and velocity after collision
+		ball.velocity = direction * -(glm.normalize(ball.position) * 20.0)
 
-	# check collision with the goal
-	# if check_collision(player, goal_left):
-	# change the direction and velocity after collision
-	# player.velocity = glm.vec3(-10.0, 0.0, 0.0)
+
 
 	if goal_left.position.x < ball.position.x < goal_right.position.x and ball.position.z > goal_right.position.z:
 		global score
@@ -153,13 +160,20 @@ def display():
 		ball.velocity *= 0.0
 
 	# print(player.position, ball.position)
-
+	glScale(3.0, 0.0, 0.0)
 	# order shouldn't matter
 	ground.draw()
 	goal_left.draw()
 	goal_right.draw()
 	ball.draw()
 	player.draw()
+	wall_left.draw()
+	wall_right.draw()
+	wall_side_right.draw()
+	wall_side_left.draw()
+	wall_backside.draw()
+
+
 
 	# Swap the buffer we just drew on with the one showing on the screen
 	glut.glutSwapBuffers()
@@ -203,18 +217,19 @@ def keyboard_up_input(key, x, y):
 
 
 def handleSpecialKeypress(key, x, y):
-	if key == GLUT_KEY_LEFT:
+	if key == GLUT_KEY_LEFT and not camera.position.x == 24:
 		print(camera.position)
 		camera.position += glm.vec3(10.0, 0.0, 0.0)
-	if key == GLUT_KEY_RIGHT:
+
+	if key == GLUT_KEY_RIGHT and not camera.position.x == -26:
 		print(camera.position)
 		camera.position -= glm.vec3(10.0, 0.0, 0.0)
 
-	if key == GLUT_KEY_UP:
+	if key == GLUT_KEY_UP and not camera.position.y == 60:
 		print(camera.position)
 		camera.position += glm.vec3(0.0, 10.0, 0.0)
 
-	if key == GLUT_KEY_DOWN:
+	if key == GLUT_KEY_DOWN and not camera.position.y == 0:
 		print(camera.position)
 		camera.position -= glm.vec3(0.0, 10.0, 0.0)
 
@@ -411,21 +426,60 @@ ground = (
 ball = (
 	GameObject(
 		position=glm.vec3(-5, 0, -10),
-		scale=glm.vec3(1)
+		scale=glm.vec3(1),
+		gravity=glm.vec3(0.0, -10.0, 0.0)
 	)
 )
 
 goal_left = (
 	GameObject(
-		position=glm.vec3(-4, 0, 30),
+		position=glm.vec3(-5, 0, 30),
 		scale=glm.vec3(1)
 	)
 )
 goal_right = (
 	GameObject(
-		position=glm.vec3(4, 0, 30),
+		position=glm.vec3(5, 0, 30),
 		scale=glm.vec3(1)
 	)
 )
+
+wall_left = (
+	GameObject(
+		position=glm.vec3(15, 0, 30),
+		scale=glm.vec3(9.0, 1.0, 1.0)
+	)
+)
+
+
+wall_right = (
+	GameObject(
+		position=glm.vec3(-15, 0, 30),
+		scale=glm.vec3(-9.0, 1.0, 1.0)
+	)
+)
+wall_side_right = (
+	GameObject(
+		position=glm.vec3(-25, 0, 6),
+		scale=glm.vec3(1.0, 1.0, 25.0)
+	)
+)
+
+wall_side_left = (
+	GameObject(
+		position=glm.vec3(25, 0, 6),
+		scale=glm.vec3(1.0, 1.0, 25.0)
+	)
+)
+
+wall_backside = (
+	GameObject(
+		position=glm.vec3(0, 0, -18),
+		scale=glm.vec3(24.0, 1.0, 1.0)
+	)
+)
+
+
+
 # Start the main loop
 glut.glutMainLoop()
