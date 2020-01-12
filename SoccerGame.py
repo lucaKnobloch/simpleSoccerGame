@@ -4,7 +4,6 @@ import time
 from OpenGL import GLUT as glut
 from OpenGL.GL import shaders, glScale
 from OpenGL.raw.GLUT import GLUT_KEY_LEFT, GLUT_KEY_RIGHT, GLUT_KEY_UP, GLUT_KEY_DOWN
-from Utilities2 import *
 
 
 class GameObject:
