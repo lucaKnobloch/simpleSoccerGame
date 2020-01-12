@@ -1,15 +1,12 @@
 # simpleSoccerGame
-Uses PyopenGL to create a simple soccer game
+Uses PyopenGL to create a simple soccer game <br>
 
+player can be moved with WASD <br>
 
-Features <br>
-    [ ] 3D Objects <br>
-    [X] User Input <br>
-    [ ] cheat mode? <br>
-    [ ] Lightning and smooth shading <br>
-    [ ] Texture mapping <br>  
-    [X] Resizing <br> 
-    extra features <br>
-        [ ] Collision Detection AA BB <br>
-        [ ] Head up Display <br>
-        [ ] resize Screen <br>
+Player - Ball collision is deteceted by AABB. <br>
+
+Simple phyisical model is applied to enable the ball to jump after got hit by the player. <br>
+
+Goal will be shown in the command line after finishing the game. <br>
+
+The balls position can be reset by pressing r <br>
