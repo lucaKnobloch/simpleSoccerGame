@@ -1,4 +1,6 @@
 # simpleSoccerGame
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=lucaKnobloch_simpleSoccerGame&metric=alert_status)](https://sonarcloud.io/dashboard?id=lucaKnobloch_simpleSoccerGame)
+
 Uses PyopenGL to create a simple soccer game <br>
 
 player can be moved with WASD <br>

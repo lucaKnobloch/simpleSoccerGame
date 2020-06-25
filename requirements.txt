@@ -1,0 +1,4 @@
+PyOpenGL
+glm
+gl
+numpy
